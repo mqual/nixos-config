@@ -2,18 +2,52 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-#{ config, pkgs, inputs, ... }:
 { config, pkgs, ... }:
 
 {
-  imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-    ];
+  imports = [
+    # Include the results of the hardware scan.
+    ./hardware-configuration.nix
+  ];
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
+
+  /*
+    # Clean Quiet Boot
+    boot = {
+      kernelParams = [
+        "quiet"
+        "splash"
+        "console=/dev/null"
+      ];
+      plymouth.enable = true;
+    };
+
+    programs = {
+      gamescope = {
+        enable = true;
+        capSysNice = true;
+      };
+      steam.gamescopeSession.enable = true;
+    };
+
+    # Gamescope Auto Boot from TTY (example)
+    services = {
+      xserver.enable = false; # Assuming no other Xserver needed
+      getty.autologinUser = "haxfn";
+      greetd = {
+        enable = true;
+        settings = {
+          default_session = {
+            command = "${lib.getExe pkgs.gamescope} -W 1920 -H 1080 -f -e --xwayland-count 2 --hdr-enabled --hdr-itm-enabled -- steam -pipewire-dmabuf -gamepadui -steamdeck -steamos3 > /dev/null 2>&1";
+            user = "haxfn";
+          };
+        };
+      };
+    };
+  */
 
   networking.hostName = "nixos"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
@@ -47,7 +81,7 @@
   services.xserver.enable = true;
 
   # Enable the GNOME Desktop Environment.
-  #services.desktopManager.gnome.enable = true;
+  services.desktopManager.gnome.enable = true;
   services.displayManager.gdm.enable = true;
 
   # Configure keymap in X11
@@ -85,15 +119,20 @@
   users.users.haxfn = {
     isNormalUser = true;
     description = "Vishal";
-    extraGroups = [ "networkmanager" "wheel" ];
+    extraGroups = [
+      "networkmanager"
+      "wheel"
+    ];
     shell = pkgs.nushell;
     packages = with pkgs; [
-    #  thunderbird
+      #  thunderbird
     ];
   };
 
   # Install firefox.
   #programs.firefox.enable = true;
+
+  programs.xwayland.enable = true;
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
@@ -101,15 +140,30 @@
   programs.niri.enable = true;
   programs.dms-shell.enable = true;
 
+  programs.steam.enable = true;
+
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-  #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-  #  wget
-    google-chrome
+    #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+    #  wget
+    xwayland-satellite
+    (google-chrome.override {
+      commandLineArgs = [
+        "--ozone-platform=x11"
+        "--enable-gpu-rasterization"
+        "--enable-zero-copy"
+        "--ignore-gpu-blocklist"
+        "--enable-features=VaapiVideoDecodeLinuxGL"
+      ];
+    })
     git
     #inputs.quickshell.packages.${pkgs.system}.default
     pciutils
+    # Useful utilities for future checks
+    vulkan-tools
+    libva-utils
+    #claude-code
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -138,29 +192,52 @@
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "25.11"; # Did you read the comment?
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+  ];
 
   services.udev.packages = with pkgs; [
     vial
   ];
 
-  hardware.graphics.enable = true;
+  environment.sessionVariables = {
+    EDITOR = "ki";
+    VISUAL = "ki";
+
+    ## VA-API via nvidia-vaapi-driver
+    #LIBVA_DRIVER_NAME = "nvidia";
+    #NVD_BACKEND = "direct"; # better performance than indirect on Turing+
+    #MOZ_DISABLE_RDD_SANDBOX = "1"; # needed for VA-API in some browsers
+
+    ## Wayland + NVIDIA
+    #GBM_BACKEND = "nvidia-drm";
+    #__GLX_VENDOR_LIBRARY_NAME = "nvidia";
+
+    LIBVA_DRIVER_NAME = "nvidia";
+    NVD_BACKEND = "direct";
+    __NV_PRIME_RENDER_OFFLOAD = "1";
+    __NV_PRIME_RENDER_OFFLOAD_PROVIDER_NAME = "NVIDIA-G0";
+    __GLX_VENDOR_LIBRARY_NAME = "nvidia";
+    __VK_LAYER_NV_optimus = "NVIDIA_only";
+  };
+
+  hardware.graphics = {
+    enable = true;
+    enable32Bit = true;
+    extraPackages = with pkgs; [
+      nvidia-vaapi-driver # VA-API → NVDEC bridge for hardware video decode
+      libva-vdpau-driver
+      libvdpau-va-gl
+    ];
+  };
+
   services.xserver.videoDrivers = [ "nvidia" ];
 
   hardware.nvidia = {
-    modesetting.enable = true;
-    powerManagement.enable = false;
-    open = false;
+    open = true;
+    modesetting.enable = true; # required for Wayland
+    powerManagement.enable = true; # prevents GPU reset issues on suspend
     nvidiaSettings = true;
-
-    prime = {
-      offload = {
-        enable = true;
-        enableOffloadCmd = true;
-      };
-      # Adjusted based on your nvidia-smi output
-      intelBusId = "PCI:0:2:0"; 
-      nvidiaBusId = "PCI:1:0:0";
-    };
   };
 }
