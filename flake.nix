@@ -14,23 +14,32 @@
     ki-editor.url = "github:ki-editor/ki-editor";
   };
 
-  outputs = { self, nixpkgs, home-manager, ki-editor, ... }@inputs: {
-    nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
-      system = "x86_64-linux";
-      specialArgs = { inherit inputs; }; # Passes 'inputs' (like ki-editor) to your modules
-      modules = [
-        ./configuration.nix
-        
-        # This nests Home Manager inside the NixOS rebuild process
-        home-manager.nixosModules.home-manager {
-          home-manager.useGlobalPkgs = true;
-          home-manager.useUserPackages = true;
+  outputs =
+    {
+      self,
+      nixpkgs,
+      home-manager,
+      ki-editor,
+      ...
+    }@inputs:
+    {
+      nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        specialArgs = { inherit inputs; }; # Passes 'inputs' (like ki-editor) to your modules
+        modules = [
+          ./configuration.nix
 
-          home-manager.extraSpecialArgs = { inherit inputs; };
+          # This nests Home Manager inside the NixOS rebuild process
+          home-manager.nixosModules.home-manager
+          {
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
 
-          home-manager.users.haxfn = import ./home.nix;
-        }
-      ];
+            home-manager.extraSpecialArgs = { inherit inputs; };
+
+            home-manager.users.haxfn = import ./home.nix;
+          }
+        ];
+      };
     };
-  };
 }

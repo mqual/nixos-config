@@ -41,6 +41,8 @@
     # ''
     inputs.ki-editor.packages.${pkgs.system}.default
     pkgs.nixfmt
+    pkgs.just
+    pkgs.direnv
   ];
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
@@ -114,11 +116,6 @@
           append /usr/bin/env
         )
       '';
-      shellAliases = {
-        vi = "hx";
-        vim = "hx";
-        nano = "hx";
-      };
     };
 
     carapace = {

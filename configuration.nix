@@ -14,41 +14,6 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  /*
-    # Clean Quiet Boot
-    boot = {
-      kernelParams = [
-        "quiet"
-        "splash"
-        "console=/dev/null"
-      ];
-      plymouth.enable = true;
-    };
-
-    programs = {
-      gamescope = {
-        enable = true;
-        capSysNice = true;
-      };
-      steam.gamescopeSession.enable = true;
-    };
-
-    # Gamescope Auto Boot from TTY (example)
-    services = {
-      xserver.enable = false; # Assuming no other Xserver needed
-      getty.autologinUser = "haxfn";
-      greetd = {
-        enable = true;
-        settings = {
-          default_session = {
-            command = "${lib.getExe pkgs.gamescope} -W 1920 -H 1080 -f -e --xwayland-count 2 --hdr-enabled --hdr-itm-enabled -- steam -pipewire-dmabuf -gamepadui -steamdeck -steamos3 > /dev/null 2>&1";
-            user = "haxfn";
-          };
-        };
-      };
-    };
-  */
-
   networking.hostName = "nixos"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
@@ -140,7 +105,17 @@
   programs.niri.enable = true;
   programs.dms-shell.enable = true;
 
-  programs.steam.enable = true;
+  programs = {
+    gamescope.enable = true;
+    steam = {
+      enable = true;
+      gamescopeSession.enable = true;
+      extraCompatPackages = with pkgs; [
+        proton-ge-bin
+        protonup-qt
+      ];
+    };
+  };
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
@@ -163,7 +138,20 @@
     # Useful utilities for future checks
     vulkan-tools
     libva-utils
+
     #claude-code
+    ripgrep
+
+    gcc
+    cargo
+    rustc
+    rustfmt
+    rust-analyzer
+
+    wine
+    winetricks
+    protontricks
+    #xwayland-satellite-unstable
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
