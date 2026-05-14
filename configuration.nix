@@ -141,12 +141,7 @@
 
     #claude-code
     ripgrep
-
-    gcc
-    cargo
-    rustc
-    rustfmt
-    rust-analyzer
+    rustup
 
     wine
     winetricks
@@ -190,18 +185,6 @@
   ];
 
   environment.sessionVariables = {
-    EDITOR = "ki";
-    VISUAL = "ki";
-
-    ## VA-API via nvidia-vaapi-driver
-    #LIBVA_DRIVER_NAME = "nvidia";
-    #NVD_BACKEND = "direct"; # better performance than indirect on Turing+
-    #MOZ_DISABLE_RDD_SANDBOX = "1"; # needed for VA-API in some browsers
-
-    ## Wayland + NVIDIA
-    #GBM_BACKEND = "nvidia-drm";
-    #__GLX_VENDOR_LIBRARY_NAME = "nvidia";
-
     LIBVA_DRIVER_NAME = "nvidia";
     NVD_BACKEND = "direct";
     __NV_PRIME_RENDER_OFFLOAD = "1";
@@ -214,7 +197,7 @@
     enable = true;
     enable32Bit = true;
     extraPackages = with pkgs; [
-      nvidia-vaapi-driver # VA-API → NVDEC bridge for hardware video decode
+      nvidia-vaapi-driver
       libva-vdpau-driver
       libvdpau-va-gl
     ];

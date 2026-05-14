@@ -11,7 +11,7 @@
     };
 
     # This replaces your builtins.getFlake call for ki-editor
-    ki-editor.url = "github:ki-editor/ki-editor";
+    #ki-editor.url = "github:ki-editor/ki-editor";
   };
 
   outputs =
@@ -19,7 +19,7 @@
       self,
       nixpkgs,
       home-manager,
-      ki-editor,
+      #ki-editor,
       ...
     }@inputs:
     {
