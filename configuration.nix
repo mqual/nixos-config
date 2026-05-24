@@ -10,6 +10,10 @@
     ./hardware-configuration.nix
   ];
 
+  fonts.packages = with pkgs; [
+    noto-fonts
+  ];
+
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
@@ -66,6 +70,7 @@
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
+    jack.enable = true;
     # If you want to use JACK applications, uncomment this
     #jack.enable = true;
 
@@ -73,6 +78,8 @@
     # no need to redefine it in your config for now)
     #media-session.enable = true;
   };
+
+  # xdg.portal is configured automatically by the GNOME and niri modules
 
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
@@ -147,6 +154,21 @@
     winetricks
     protontricks
     #xwayland-satellite-unstable
+    qbittorrent
+    ghostty
+
+    nushell
+
+    godot_4
+
+    #libx11
+    #libxcursor
+    #libxrandr
+    #libxi
+    #libGL
+    #alsa-lib
+    #fontconfig
+    #freetype
   ];
 
   # Some programs need SUID wrappers, can be configured further or are

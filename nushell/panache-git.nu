@@ -24,7 +24,9 @@ export def main [] {
   $prompt
 }
 
-# Get the current directory with home abbreviated
+# Get the current directory with home abbreviated and fish-style path shortening.
+# All intermediate components are shortened to their first character.
+# e.g. ~/hello/foo/bar/baz => ~/h/f/b/baz
 export def current-dir [] {
   let current_dir = ($env.PWD)
 
@@ -32,15 +34,30 @@ export def current-dir [] {
     do --ignore-errors { $current_dir | path relative-to $nu.home-dir }
   )
 
+  let in_home = ($current_dir == $nu.home-dir)
   let in_sub_dir_of_home = ($current_dir_relative_to_home | is-not-empty)
 
-  let current_dir_abbreviated = (if $in_sub_dir_of_home {
+  let full_path = (if $in_home {
+    '~'
+  } else if $in_sub_dir_of_home {
     $'~(char separator)($current_dir_relative_to_home)' | str replace -ar '\\' '/'
   } else {
     $current_dir | str replace -ar '\\' '/'
   })
 
-  $'(ansi reset)($current_dir_abbreviated)'
+  # Fish-style: shorten all components except the last one to their first character
+  let parts = ($full_path | split row '/')
+  let abbreviated = (if ($parts | length) <= 1 {
+    $full_path
+  } else {
+    let init = ($parts | slice 0..(($parts | length) - 2) | each { |p|
+      if ($p | str length) > 0 { $p | str substring 0..0 } else { $p }
+    })
+    let last = ($parts | last)
+    ($init | append $last | str join '/')
+  })
+
+  $'(ansi reset)($abbreviated)'
 }
 
 # Get repository status as structured data

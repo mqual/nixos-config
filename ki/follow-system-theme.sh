@@ -1,0 +1,1 @@
+ln -sf /home/haxfn/.config/ki/$2.json /home/haxfn/.config/ki/themes/custom_theme.json

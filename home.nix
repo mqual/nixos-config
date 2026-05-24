@@ -26,10 +26,6 @@
   programs.home-manager.enable = true;
   programs.kitty.enable = true;
   programs.gh.enable = true;
-  programs.nushell = {
-    enable = true;
-    configFile.source = ./nushell/config.nu;
-  };
   programs.carapace = {
     enable = true;
     enableNushellIntegration = true;
